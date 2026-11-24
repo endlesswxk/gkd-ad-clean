@@ -41,6 +41,14 @@ jobs:
             --author "${{ github.repository_owner }} (消毒自 Lin-arm)" \
             --id 6688
 
+      - name: Build extras (watched-ad reward helpers, separate subscription)
+        run: |
+          set -euo pipefail
+          python3 tools/extras.py "$RUNNER_TEMP/upstream.json5" dist/extras/fanqie.json5 \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --author "${{ github.repository_owner }} (消毒自 Lin-arm)"
+
       - name: Commit if changed
         run: |
           set -euo pipefail

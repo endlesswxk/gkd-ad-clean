@@ -165,8 +165,12 @@ def looks_like_close(txt):
     return bool(SMALL_BOX.search(t) and SMALL_BOX_H.search(t))
 
 
-def keep_rule(rule):
-    """返回 (保留?, 丢弃原因)"""
+def keep_rule(rule, check_cta=True):
+    """返回 (保留?, 丢弃原因)
+
+    check_cta=False 时跳过 CTA_GUARD（附加订阅里的"看广告领奖励"这类规则本身就是
+    点奖励/关闭，天然带 CTA 词，但仍要过 HARD_DANGER）。
+    """
     action = rule.get("action")
     if action not in ALLOWED_ACTIONS:
         return False, "unknown_action"
@@ -175,7 +179,7 @@ def keep_rule(rule):
         return False, "empty"
     if HARD_DANGER.search(txt):
         return False, "hard"
-    if CTA.search(txt) and not (DISMISS.search(txt) or looks_like_close(txt)):
+    if check_cta and CTA.search(txt) and not (DISMISS.search(txt) or looks_like_close(txt)):
         return False, "cta"
     return True, None
 

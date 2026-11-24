@@ -17,6 +17,22 @@ GKD 里操作：**订阅 → 右下角 + → 粘贴上面的链接 → 确定**�
 
 > 国内网络如果 raw.githubusercontent.com 打不开，用 jsdelivr 那两条。
 
+## 附加订阅（可选，默认不用加）
+
+主订阅刻意不收「功能类」，但有一类需求单独放在附加订阅里：**看激励视频换免广告时长时的自动收尾**（自动静音、得奖励后点关闭、隔 10 秒点右上角叉）。
+
+```
+https://raw.githubusercontent.com/endlesswxk/gkd-ad-clean/main/dist/extras/fanqie.json5
+https://cdn.jsdelivr.net/gh/endlesswxk/gkd-ad-clean@main/dist/extras/fanqie.json5
+```
+
+- 独立 id **6689**，独立版本号，和主订阅互不影响，随时可以删掉或单独关闭。
+- 内容只有白名单点名的组（`tools/extras.py` 顶部 `EXTRA_GROUPS`，按 **包名 + 组名** 双重锁定，上游新增的功能类组不会混进来），当前是：
+  - `com.dragon.read`（番茄免费小说）/ `功能类-看广告自动领奖励`、`功能类-观看广告自动静音`，共 2 组 7 条。
+- 仍然要过安全过滤（安装/支付/授权/密码等一律剔除），但**跳过 CTA 过滤**——这类规则天生就是点"领取/关闭"，用主订阅那套过滤会被全删。
+- 需要提醒：这是**帮你把广告流程跑完**，和主订阅"只关广告"的定位相反；番茄有激励反作弊，未播完就关、长时间静音挂机都可能判奖励无效甚至风控，风险在账号不在手机。番茄改版也最容易让这类规则失效。
+
+
 ## 这个订阅里有什么
 
 | 项目 | 数量 |
@@ -56,9 +72,12 @@ GKD 里操作：**订阅 → 右下角 + → 粘贴上面的链接 → 确定**�
 ## 目录
 
 ```
-dist/gkd.json5            订阅产物（GKD 下载的就是这个）
-dist/gkd.version.json5    版本文件 {id,version}
-tools/sanitize.py         消毒器（纯 Python3 标准库 + 自带 JSON5 解析器，无第三方依赖）
+dist/gkd.json5            主订阅产物（GKD 下载的就是这个）
+dist/gkd.version.json5    主订阅版本文件 {id:6688,version}
+dist/extras/fanqie.json5  附加订阅产物（看广告换权益，id 6689）
+dist/extras/gkd.version.json5  附加订阅版本文件
+tools/sanitize.py         主订阅消毒器（纯 Python3 标准库 + 自带 JSON5 解析器，无第三方依赖）
+tools/extras.py           附加订阅生成器（白名单挑组）
 tools/json5.py            JSON5 解析器
 .github/workflows/sync.yml  每天拉上游 → 消毒 → 提交
 ```
