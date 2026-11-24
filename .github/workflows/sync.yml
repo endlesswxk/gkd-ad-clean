@@ -1,0 +1,55 @@
+name: sync-upstream
+
+on:
+  schedule:
+    # 每天 19:17 UTC（= 04:17 JST / 03:17 CST）
+    - cron: "17 19 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/**"
+      - ".github/workflows/sync.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: true
+
+env:
+  UPSTREAM_URL: https://raw.githubusercontent.com/Lin-arm/GKD_subscription/main/dist/gkd.json5
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream subscription
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --retry-delay 5 -o "$RUNNER_TEMP/upstream.json5" "$UPSTREAM_URL"
+          ls -l "$RUNNER_TEMP/upstream.json5"
+
+      - name: Sanitize (only ad-closing rules, no global groups)
+        run: |
+          set -euo pipefail
+          python3 tools/sanitize.py "$RUNNER_TEMP/upstream.json5" dist/gkd.json5 \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --author "${{ github.repository_owner }} (消毒自 Lin-arm)" \
+            --id 6688
+
+      - name: Commit if changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist
+          if git diff --cached --quiet; then
+            echo "no change"
+            exit 0
+          fi
+          git commit -m "chore: sync upstream ($(date -u +%Y-%m-%d))"
+          git push
